@@ -57,13 +57,57 @@ describe("GET /offers : visibilité selon le profil", () => {
 
       expect(response.status).toBe(200);
       expect(offerIds(response.body)).toEqual([
+        OFFER.CONSULTANT_PLANNING,
         OFFER.CLIENT_PORTAL,
+        OFFER.E2E_TESTS,
         OFFER.INTERNAL_CHATBOT,
         OFFER.DATA_QUALITY,
         OFFER.FLEET_APP,
         OFFER.BILLING_API,
         OFFER.CLOUD_MIGRATION,
       ]);
+    });
+
+    it("inclut une offre dont la période commence exactement à startDate", async () => {
+      const response = await listOffersAs("ADMIN", ADMINISTRATOR.ANNE_LECLERCQ)
+        .query({ startDate: "2027-02-08", endDate: "2027-02-08" });
+
+      expect(response.status).toBe(200);
+      expect(offerIds(response.body)).toEqual([
+        OFFER.CONSULTANT_PLANNING,
+        OFFER.CLIENT_PORTAL,
+        OFFER.E2E_TESTS,
+        OFFER.INTERNAL_CHATBOT,
+        OFFER.DATA_QUALITY,
+        OFFER.FLEET_APP,
+        OFFER.BILLING_API,
+        OFFER.CLOUD_MIGRATION,
+      ]);
+    });
+
+    it("inclut une offre dont la période se termine exactement à endDate", async () => {
+      const response = await listOffersAs("ADMIN", ADMINISTRATOR.ANNE_LECLERCQ)
+        .query({ startDate: "2027-05-28", endDate: "2027-05-28" });
+
+      expect(response.status).toBe(200);
+      expect(offerIds(response.body)).toEqual([
+        OFFER.CONSULTANT_PLANNING,
+        OFFER.CLIENT_PORTAL,
+        OFFER.E2E_TESTS,
+        OFFER.INTERNAL_CHATBOT,
+        OFFER.DATA_QUALITY,
+        OFFER.FLEET_APP,
+        OFFER.BILLING_API,
+        OFFER.CLOUD_MIGRATION,
+      ]);
+    });
+
+    it("retourne un tableau vide quand aucune période ne correspond", async () => {
+      const response = await listOffersAs("ADMIN", ADMINISTRATOR.ANNE_LECLERCQ)
+        .query({ startDate: "2028-01-01", endDate: "2028-01-31" });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual([]);
     });
 
     it("accepte une seule borne de date", async () => {
@@ -81,6 +125,27 @@ describe("GET /offers : visibilité selon le profil", () => {
         OFFER.BILLING_API,
         OFFER.CLOUD_MIGRATION,
       ]);
+    });
+
+    it("accepte endDate sans startDate", async () => {
+      const response = await listOffersAs("ADMIN", ADMINISTRATOR.ANNE_LECLERCQ)
+        .query({ endDate: "2026-12-18" });
+
+      expect(response.status).toBe(200);
+      expect(offerIds(response.body)).toEqual([
+        OFFER.CONSULTANT_PLANNING,
+        OFFER.E2E_TESTS,
+        OFFER.ARCHIVE_DIGITIZATION,
+        OFFER.PDF_REPORTS,
+      ]);
+    });
+
+    it("retourne un tableau vide avec une borne de fin antérieure aux périodes", async () => {
+      const response = await listOffersAs("ADMIN", ADMINISTRATOR.ANNE_LECLERCQ)
+        .query({ endDate: "2025-09-14" });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual([]);
     });
 
     it.each([
