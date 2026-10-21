@@ -16,11 +16,12 @@ export const useOffers = (
   const [offers, setOffers] = useState<Offer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { startDate, endDate } = dateRange;
 
   useEffect(() => {
     const controller = new AbortController();
 
-    getOffers(token, dateRange, controller.signal)
+    getOffers(token, { startDate, endDate }, controller.signal)
       .then((data) => {
         if (!controller.signal.aborted) setOffers(data);
       })
@@ -37,7 +38,7 @@ export const useOffers = (
       });
 
     return () => controller.abort();
-  }, [token, onUnauthorized, dateRange.startDate, dateRange.endDate]);
+  }, [token, onUnauthorized, startDate, endDate]);
 
   return { offers, isLoading, error };
 };
