@@ -145,6 +145,9 @@ récente à la plus ancienne, puis de la plus récente à la plus ancienne.
 ### Requête
 
 - Header `Authorization` obligatoire
+- Paramètres facultatifs `startDate` et `endDate` au format `AAAA-MM-JJ`. Les offres dont
+  la période chevauche l'intervalle demandé sont retournées. Une seule borne peut être
+  fournie ; sans borne, toutes les offres visibles sont retournées.
 
 ### Réponses
 
@@ -168,3 +171,4 @@ récente à la plus ancienne, puis de la plus récente à la plus ancienne.
 
 - `401` `UNAUTHENTICATED` : session absente ou invalide.
 - `403` `FORBIDDEN` : contact seulement promoteur ou signataire.
+- `400` `INVALID_QUERY` : date invalide ou `startDate` postérieure à `endDate`.

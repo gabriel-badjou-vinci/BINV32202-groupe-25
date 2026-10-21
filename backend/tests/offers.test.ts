@@ -50,6 +50,52 @@ describe("GET /offers : visibilité selon le profil", () => {
     });
   });
 
+  describe("GET /offers : filtre de période", () => {
+    it("retourne les offres dont la période chevauche l'intervalle demandé", async () => {
+      const response = await listOffersAs("ADMIN", ADMINISTRATOR.ANNE_LECLERCQ)
+        .query({ startDate: "2027-02-08", endDate: "2027-05-28" });
+
+      expect(response.status).toBe(200);
+      expect(offerIds(response.body)).toEqual([
+        OFFER.CLIENT_PORTAL,
+        OFFER.INTERNAL_CHATBOT,
+        OFFER.DATA_QUALITY,
+        OFFER.FLEET_APP,
+        OFFER.BILLING_API,
+        OFFER.CLOUD_MIGRATION,
+      ]);
+    });
+
+    it("accepte une seule borne de date", async () => {
+      const response = await listOffersAs("ADMIN", ADMINISTRATOR.ANNE_LECLERCQ)
+        .query({ startDate: "2027-01-01" });
+
+      expect(response.status).toBe(200);
+      expect(offerIds(response.body)).toEqual([
+        OFFER.CONSULTANT_PLANNING,
+        OFFER.CLIENT_PORTAL,
+        OFFER.E2E_TESTS,
+        OFFER.INTERNAL_CHATBOT,
+        OFFER.DATA_QUALITY,
+        OFFER.FLEET_APP,
+        OFFER.BILLING_API,
+        OFFER.CLOUD_MIGRATION,
+      ]);
+    });
+
+    it.each([
+      [{ startDate: "2026-02-30" }, "startDate"],
+      [{ endDate: "2026/05/29" }, "endDate"],
+      [{ startDate: "2026-06-01", endDate: "2026-05-01" }, "startDate"],
+    ])("refuse une période invalide (%s)", async (query, parameter) => {
+      const response = await listOffersAs("ADMIN", ADMINISTRATOR.ANNE_LECLERCQ).query(query);
+
+      expect(response.status).toBe(400);
+      expect(response.body.error.code).toBe("INVALID_QUERY");
+      expect(response.body.error.message).toContain(parameter);
+    });
+  });
+
   it("ne montre que les offres publiées à un étudiant", async () => {
     const response = await listOffersAs("STUDENT", STUDENT.LUCAS_DUPONT);
 
