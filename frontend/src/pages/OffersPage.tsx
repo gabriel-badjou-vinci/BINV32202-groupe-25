@@ -1,6 +1,8 @@
+import { useState } from "react";
 import EmptyState from "../components/EmptyState.tsx";
 import ErrorState from "../components/ErrorState.tsx";
 import LoadingState from "../components/LoadingState.tsx";
+import OfferDateFilter, { type OfferDateRange } from "../components/OfferDateFilter.tsx";
 import OfferTable from "../components/OfferTable.tsx";
 import { useOffers } from "../hooks/useOffers.ts";
 import type { User } from "../models/user.ts";
@@ -18,7 +20,8 @@ const DESCRIPTIONS = {
 } as const;
 
 const OffersPage = ({ user, token, onUnauthorized }: OffersPageProps) => {
-  const { offers, isLoading, error } = useOffers(token, onUnauthorized);
+  const [dateRange, setDateRange] = useState<OfferDateRange>({ startDate: "", endDate: "" });
+  const { offers, isLoading, error } = useOffers(token, onUnauthorized, dateRange);
 
   const renderContent = () => {
     if (error) return <ErrorState message={error} />;
@@ -38,6 +41,7 @@ const OffersPage = ({ user, token, onUnauthorized }: OffersPageProps) => {
     <section>
       <h1>Offres de stage</h1>
       <p>{DESCRIPTIONS[user.kind]}</p>
+      <OfferDateFilter value={dateRange} onSubmit={setDateRange} />
       {renderContent()}
     </section>
   );

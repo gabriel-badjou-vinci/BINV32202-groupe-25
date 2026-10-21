@@ -6,11 +6,16 @@ export interface OfferFilter {
   status?: OfferStatus;
   /** Limite aux offres déposées par ce contact. */
   depositorContactId?: number;
+  /** Limite aux périodes qui chevauchent l'intervalle demandé. */
+  startDate?: string;
+  endDate?: string;
 }
 
 interface FindAllParams {
   status: OfferStatus | null;
   depositorContactId: number | null;
+  startDate: string | null;
+  endDate: string | null;
 }
 
 export const createOffersRepository = (db: Db) => {
@@ -26,13 +31,20 @@ export const createOffersRepository = (db: Db) => {
     JOIN periods p ON p.id = o.period_id
     WHERE (@status IS NULL OR o.status = @status)
       AND (@depositorContactId IS NULL OR o.depositor_contact_id = @depositorContactId)
+      AND (@startDate IS NULL OR p.end_date >= @startDate)
+      AND (@endDate IS NULL OR p.start_date <= @endDate)
     ORDER BY ay.start_date DESC, o.created_at DESC
   `);
 
   return {
     /** Offres correspondant au filtre, de la plus récente année à la plus ancienne. */
-    findAll: ({ status, depositorContactId }: OfferFilter): OfferDbo[] =>
-      findAll.all({ status: status ?? null, depositorContactId: depositorContactId ?? null }),
+    findAll: ({ status, depositorContactId, startDate, endDate }: OfferFilter): OfferDbo[] =>
+      findAll.all({
+        status: status ?? null,
+        depositorContactId: depositorContactId ?? null,
+        startDate: startDate ?? null,
+        endDate: endDate ?? null,
+      }),
   };
 };
 
