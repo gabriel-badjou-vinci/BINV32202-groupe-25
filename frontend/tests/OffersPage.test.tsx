@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import OffersPage from "../src/pages/OffersPage.tsx";
 import { adminUser, contactUser, stubFetch, studentUser } from "./helpers/fetchMock.ts";
@@ -65,5 +65,44 @@ describe("OffersPage", () => {
     render(<OffersPage user={contactUser} token="jeton" onUnauthorized={onUnauthorized} />);
 
     await waitFor(() => expect(onUnauthorized).toHaveBeenCalled());
+  });
+
+  it("applique le filtre de dates uniquement après validation", async () => {
+    const fetchMock = stubFetch({ "/api/offers": () => Response.json([]) });
+
+    render(<OffersPage user={adminUser} token="jeton" onUnauthorized={vi.fn()} />);
+    await screen.findByText("Aucune offre à afficher.");
+
+    fireEvent.change(screen.getByLabelText("Date de début"), { target: { value: "2026-02-09" } });
+    fireEvent.change(screen.getByLabelText("Date de fin"), { target: { value: "2026-05-29" } });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByRole("button", { name: "Filtrer" }));
+
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenLastCalledWith(
+        "/api/offers?startDate=2026-02-09&endDate=2026-05-29",
+        expect.objectContaining({ headers: { Authorization: "jeton" } }),
+      ),
+    );
+  });
+
+  it("réinitialise le filtre et recharge toutes les offres", async () => {
+    const fetchMock = stubFetch({ "/api/offers": () => Response.json([]) });
+
+    render(<OffersPage user={adminUser} token="jeton" onUnauthorized={vi.fn()} />);
+    await screen.findByText("Aucune offre à afficher.");
+    fireEvent.change(screen.getByLabelText("Date de début"), { target: { value: "2026-02-09" } });
+    fireEvent.click(screen.getByRole("button", { name: "Filtrer" }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+
+    fireEvent.click(screen.getByRole("button", { name: "Réinitialiser" }));
+
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenLastCalledWith(
+        "/api/offers",
+        expect.objectContaining({ headers: { Authorization: "jeton" } }),
+      ),
+    );
   });
 });

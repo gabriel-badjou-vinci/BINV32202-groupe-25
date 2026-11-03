@@ -17,7 +17,8 @@ const visibilityFilter = (viewer: User): OfferFilter => {
 };
 
 export const createOffersService = (repository: OffersRepository) => ({
-  listOffers: (viewer: User): Offer[] => repository.findAll(visibilityFilter(viewer)).map(toOffer),
+  listOffers: (viewer: User, dateFilter: OfferFilter = {}): Offer[] =>
+    repository.findAll({ ...visibilityFilter(viewer), ...dateFilter }).map(toOffer),
 });
 
 export type OffersService = ReturnType<typeof createOffersService>;

@@ -2,6 +2,7 @@
      // Les nouvelles sessions démarrent en permissions manuelles.
   // Ne pas activer Allow all, Autopilot ou l'auto-approbation globale.
   "chat.permissions.default": "default",
+  "chat.tools.global.autoApprove": false,
 
   // Active l'approbation sélective des commandes. Les règles de sécurité
   // intégrées de VS Code restent actives.
@@ -37,6 +38,17 @@
     "/^Remove-Item\\b/i": false
   },
 
+  // Les modifications ordinaires dans le workspace sont autorisées.
+  // Les fichiers sensibles restent soumis à approbation.
+  "chat.tools.edits.autoApprove": {
+    "**/*": true,
+    "**/.env": false,
+    "**/.env.*": false,
+    "**/.git/**": false,
+    "**/.vscode/*.json": false,
+    "**/package-lock.json": false
+  },
+
   // La sandbox accorde automatiquement la lecture et l'écriture dans le
   // répertoire de travail. Aucun chemin extérieur supplémentaire n'est ajouté.
   "chat.agent.sandbox.enabled": "on",
@@ -65,4 +77,6 @@
   "chat.agent.sandbox.mcpServers": true,
   "chat.agent.sandbox.lspServers": true,
 
+  // Bloque également les outils Fetch et navigateur intégrés.
+  "chat.agent.networkFilter": true
 }
