@@ -29,6 +29,10 @@ Toute erreur a la même forme :
 |---|---|---|
 | 400 | `INVALID_QUERY` | Paramètre de requête invalide |
 | 400 | `INVALID_BODY` | Corps de requête invalide |
+| 400 | `OFFER_NOT_ELIGIBLE` | L'offre ne permet pas une candidature |
+| 404 | `APPLICATION_NOT_FOUND` | Candidature absente ou appartenant à un autre étudiant |
+| 409 | `APPLICATION_EXISTS` | Une candidature est déjà en cours pour cette offre |
+| 409 | `APPLICATION_NOT_WITHDRAWABLE` | La candidature a déjà été traitée |
 | 401 | `UNAUTHENTICATED` | Session absente, expirée ou invalide ; compte non autorisé à se connecter |
 | 403 | `FORBIDDEN` | Utilisateur connecté, mais sans droit sur la ressource |
 | 404 | `NOT_FOUND` | Route inconnue |
@@ -172,3 +176,34 @@ récente à la plus ancienne, puis de la plus récente à la plus ancienne.
 - `401` `UNAUTHENTICATED` : session absente ou invalide.
 - `403` `FORBIDDEN` : contact seulement promoteur ou signataire.
 - `400` `INVALID_QUERY` : date invalide ou `startDate` postérieure à `endDate`.
+
+## POST /offers/:offerId/applications
+
+Crée une candidature pour l'étudiant connecté sur une offre publiée.
+
+### Requête
+
+- Header `Authorization` obligatoire
+- Body JSON : `{ "message": "…" }`
+- `message` est obligatoire après trim et limité à 1000 caractères.
+
+### Réponses
+
+- `201` : candidature créée avec le statut `IN_PROGRESS`
+- `400` `INVALID_BODY` : message absent, vide ou trop long
+- `400` `OFFER_NOT_ELIGIBLE` : offre inexistante ou non publiée
+- `403` `FORBIDDEN` : l'utilisateur connecté n'est pas un étudiant
+- `409` `APPLICATION_EXISTS` : candidature active déjà existante
+
+## POST /applications/:applicationId/withdraw
+
+Retire la candidature de l'étudiant connecté. Le retrait conserve la ligne et
+passe son statut à `WITHDRAWN`.
+
+### Réponses
+
+- `200` : candidature avec le statut `WITHDRAWN`
+- `401` `UNAUTHENTICATED` : session absente ou invalide
+- `403` `FORBIDDEN` : l'utilisateur connecté n'est pas un étudiant
+- `404` `APPLICATION_NOT_FOUND` : candidature absente ou appartenant à un autre étudiant
+- `409` `APPLICATION_NOT_WITHDRAWABLE` : candidature déjà traitée ou déjà retirée
