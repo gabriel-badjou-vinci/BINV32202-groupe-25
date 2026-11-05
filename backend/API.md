@@ -184,16 +184,29 @@ Crée une candidature pour l'étudiant connecté sur une offre publiée.
 ### Requête
 
 - Header `Authorization` obligatoire
-- Body JSON : `{ "message": "…" }`
-- `message` est obligatoire après trim et limité à 1000 caractères.
+- Body JSON facultatif : `{ "message": "…" }`
+- `message` est facultatif, trimé et limité à 1000 caractères lorsqu'il est fourni.
 
 ### Réponses
 
 - `201` : candidature créée avec le statut `IN_PROGRESS`
-- `400` `INVALID_BODY` : message absent, vide ou trop long
+- `400` `INVALID_BODY` : message d'un type invalide ou trop long
 - `400` `OFFER_NOT_ELIGIBLE` : offre inexistante ou non publiée
 - `403` `FORBIDDEN` : l'utilisateur connecté n'est pas un étudiant
 - `409` `APPLICATION_EXISTS` : candidature active déjà existante
+
+## GET /applications
+
+Retourne les candidatures de l'étudiant connecté, avec l'offre et l'entreprise
+associées. Les candidatures sont triées de l'année académique la plus récente à la plus
+ancienne, puis de la date de candidature la plus récente à la plus ancienne.
+
+### Réponses
+
+- `200` : tableau de candidatures contenant `offerId`, `offerTitle`, `companyShortName`,
+  `academicYear`, `period`, `message`, `status` et `appliedAt`.
+- `401` `UNAUTHENTICATED` : session absente ou invalide.
+- `403` `FORBIDDEN` : l'utilisateur connecté n'est pas un étudiant.
 
 ## POST /applications/:applicationId/withdraw
 

@@ -28,8 +28,15 @@ describe("POST /offers/:offerId/applications", () => {
     });
   });
 
-  it.each([undefined, "", "   "])("refuse un message vide (%s)", async (message) => {
+  it.each([undefined, "", "   "])("accepte un message absent ou vide (%s)", async (message) => {
     const response = await apply(STUDENT.LUCAS_DUPONT, OFFER.INTERNAL_CHATBOT, message);
+
+    expect(response.status).toBe(201);
+    expect(response.body.message).toBeNull();
+  });
+
+  it("refuse un message trop long", async () => {
+    const response = await apply(STUDENT.LUCAS_DUPONT, OFFER.INTERNAL_CHATBOT, "x".repeat(1001));
 
     expect(response.status).toBe(400);
     expect(response.body.error.code).toBe("INVALID_BODY");
@@ -91,5 +98,48 @@ describe("POST /applications/:applicationId/withdraw", () => {
 
     expect(response.status).toBe(409);
     expect(response.body.error.code).toBe("APPLICATION_NOT_WITHDRAWABLE");
+  });
+});
+
+describe("GET /applications", () => {
+  it("retourne uniquement les candidatures de l'étudiant", async () => {
+    const response = await request(app)
+      .get("/applications")
+      .set("Authorization", tokenFor("STUDENT", STUDENT.MATEUSZ_KOWALSKI));
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([
+      expect.objectContaining({
+        id: APPLICATION.MATEUSZ_CLOUD_MIGRATION,
+        offerId: OFFER.CLOUD_MIGRATION,
+        studentId: STUDENT.MATEUSZ_KOWALSKI,
+        offerTitle: "Migration d'une application vers le cloud",
+        companyShortName: "Datavia",
+        academicYear: "2026-2027",
+        period: "P2",
+        status: "SELECTED",
+      }),
+    ]);
+  });
+
+  it.each([
+    ["ADMIN", 1],
+    ["CONTACT", 4],
+  ] as const)("refuse la consultation au profil %s", async (kind, id) => {
+    const response = await request(app)
+      .get("/applications")
+      .set("Authorization", tokenFor(kind, id));
+
+    expect(response.status).toBe(403);
+    expect(response.body.error.code).toBe("FORBIDDEN");
+  });
+
+  it("retourne une liste vide pour un étudiant sans candidature", async () => {
+    const response = await request(app)
+      .get("/applications")
+      .set("Authorization", tokenFor("STUDENT", STUDENT.IOANA_POPESCU));
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([]);
   });
 });

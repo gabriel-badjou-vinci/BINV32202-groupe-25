@@ -39,7 +39,7 @@ export const createApp = (db: Db, authConfig: AuthConfig) => {
   // Routes protégées : l'utilisateur est identifié avant d'atteindre le contrôleur.
   app.use("/companies", authenticate, createCompaniesRouter(companiesService));
   app.use("/offers", authenticate, createOffersRouter(offersService));
-  app.use("/offers", authenticate, createApplicationsRouter(applicationsService));
+  app.use("/offers", authenticate, createApplicationsRouter(applicationsService, false));
   app.use("/applications", authenticate, createApplicationsRouter(applicationsService));
 
   app.use(notFoundHandler);

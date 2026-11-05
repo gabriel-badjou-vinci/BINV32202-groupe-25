@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it } from "vitest";
 import NavBar from "../src/components/NavBar.tsx";
@@ -22,6 +22,15 @@ describe("NavBar", () => {
 
     expect(screen.getByRole("link", { name: "Offres" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Entreprises" })).toBeInTheDocument();
+  });
+
+  it("propose les candidatures uniquement à l'étudiant", () => {
+    renderNavBar(studentUser);
+    expect(screen.getByRole("link", { name: "Mes candidatures" })).toBeInTheDocument();
+
+    cleanup();
+    renderNavBar(adminUser);
+    expect(screen.queryByRole("link", { name: "Mes candidatures" })).not.toBeInTheDocument();
   });
 
   it("ne propose pas les offres à un contact sans rôle de déposant", () => {

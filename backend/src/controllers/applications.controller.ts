@@ -14,27 +14,36 @@ const parsePositiveInteger = (value: string, name: string): number => {
   return parsed;
 };
 
-const parseMessage = (body: unknown): string => {
-  if (
-    typeof body !== "object" ||
-    body === null ||
-    typeof (body as { message?: unknown }).message !== "string"
-  ) {
-    throw new HttpError(400, "INVALID_BODY", "Le message est obligatoire");
+const parseMessage = (body: unknown): string | null => {
+  if (body === undefined || body === null) return null;
+  if (typeof body !== "object" || typeof (body as { message?: unknown }).message === "undefined") {
+    return null;
+  }
+  if (typeof (body as { message?: unknown }).message !== "string") {
+    throw new HttpError(400, "INVALID_BODY", "Le message doit être une chaîne de caractères");
   }
   const message = (body as { message: string }).message.trim();
-  if (message.length === 0 || message.length > MAX_MESSAGE_LENGTH) {
+  if (message.length > MAX_MESSAGE_LENGTH) {
     throw new HttpError(
       400,
       "INVALID_BODY",
-      `Le message doit contenir entre 1 et ${MAX_MESSAGE_LENGTH} caractères`,
+      `Le message doit contenir au maximum ${MAX_MESSAGE_LENGTH} caractères`,
     );
   }
-  return message;
+  return message || null;
 };
 
-export const createApplicationsRouter = (service: ApplicationsService) => {
+export const createApplicationsRouter = (
+  service: ApplicationsService,
+  includeList = true,
+) => {
   const router = Router();
+
+  if (includeList) {
+    router.get("/", (req, res) => {
+      res.json(service.listMine(getCurrentUser(req)));
+    });
+  }
 
   router.post("/:offerId/applications", (req, res) => {
     const application = service.apply(
