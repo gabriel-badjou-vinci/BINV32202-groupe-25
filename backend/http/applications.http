@@ -1,0 +1,44 @@
+### Connexion de démo : étudiant
+# @name student
+POST http://localhost:3000/auth/demo-login
+Content-Type: application/json
+
+{
+  "kind": "STUDENT",
+  "id": 1
+}
+
+### Candidatures de l'étudiant connecté (EF-33)
+GET http://localhost:3000/applications
+Authorization: {{student.response.body.token}}
+
+### Candidater avec un message (EF-32)
+# @name applicationWithMessage
+POST http://localhost:3000/offers/3/applications
+Authorization: {{student.response.body.token}}
+Content-Type: application/json
+
+{
+  "message": "Je souhaite contribuer à ce projet."
+}
+
+### Candidater sans message (EF-32)
+# @name applicationWithoutMessage
+POST http://localhost:3000/offers/7/applications
+Authorization: {{student.response.body.token}}
+Content-Type: application/json
+
+{}
+
+### Retirer une candidature en cours
+POST http://localhost:3000/applications/1/withdraw
+Authorization: {{student.response.body.token}}
+
+### Erreur : candidature sur une offre non publiée
+POST http://localhost:3000/offers/2/applications
+Authorization: {{student.response.body.token}}
+Content-Type: application/json
+
+{
+  "message": "Cette requête doit être refusée."
+}

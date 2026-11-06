@@ -19,6 +19,9 @@ interface FindAllParams {
 }
 
 export const createOffersRepository = (db: Db) => {
+  const findStatus = db.prepare<{ id: number }, { status: OfferStatus }>(
+    "SELECT status FROM offers WHERE id = @id",
+  );
   const findAll = db.prepare<FindAllParams, OfferDbo>(`
     SELECT o.id, o.title, o.description, o.status,
            o.company_id, c.short_name AS company_short_name,
@@ -37,6 +40,7 @@ export const createOffersRepository = (db: Db) => {
   `);
 
   return {
+    findStatus: (id: number): OfferStatus | undefined => findStatus.get({ id })?.status,
     /** Offres correspondant au filtre, de la plus récente année à la plus ancienne. */
     findAll: ({ status, depositorContactId, startDate, endDate }: OfferFilter): OfferDbo[] =>
       findAll.all({
