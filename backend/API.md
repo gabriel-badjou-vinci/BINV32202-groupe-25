@@ -38,6 +38,9 @@ Toute erreur a la même forme :
 | 404 | `NOT_FOUND` | Route inconnue |
 | 500 | `INTERNAL_ERROR` | Erreur inattendue du serveur |
 
+Les requêtes manuelles des parcours de candidature se trouvent dans
+[`http/applications.http`](http/applications.http).
+
 ## GET /health
 
 Indique que l'API répond.

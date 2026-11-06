@@ -16,13 +16,13 @@ export const getApplications = async (
 export const applyToOffer = async (
   token: string,
   offerId: number,
-  message: string,
+  message?: string | null,
   signal?: AbortSignal,
 ): Promise<Application> => {
   const response = await fetch(`${API_URL}/offers/${offerId}/applications`, {
     method: "POST",
     headers: { Authorization: token, "Content-Type": "application/json" },
-    body: JSON.stringify({ message }),
+    body: JSON.stringify(message === undefined ? {} : { message }),
     signal,
   });
   return readJson(response, isApplication, "Candidature impossible");

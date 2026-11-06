@@ -42,6 +42,16 @@ describe("POST /offers/:offerId/applications", () => {
     expect(response.body.error.code).toBe("INVALID_BODY");
   });
 
+  it("refuse un message qui n'est pas une chaîne", async () => {
+    const response = await request(app)
+      .post(`/offers/${OFFER.INTERNAL_CHATBOT}/applications`)
+      .set("Authorization", tokenFor("STUDENT", STUDENT.LUCAS_DUPONT))
+      .send({ message: 42 });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error.code).toBe("INVALID_BODY");
+  });
+
   it("refuse une offre non publiée", async () => {
     const response = await apply(STUDENT.LUCAS_DUPONT, OFFER.CLOUD_MIGRATION, "Message");
 
@@ -141,5 +151,17 @@ describe("GET /applications", () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual([]);
+  });
+
+  it("conserve les statuts de toutes les candidatures de l'étudiant", async () => {
+    const response = await request(app)
+      .get("/applications")
+      .set("Authorization", tokenFor("STUDENT", STUDENT.INES_HADDAD));
+
+    expect(response.status).toBe(200);
+    expect(response.body.map((application: { status: string }) => application.status)).toEqual([
+      "IN_PROGRESS",
+      "WITHDRAWN",
+    ]);
   });
 });
