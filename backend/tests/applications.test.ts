@@ -164,4 +164,20 @@ describe("GET /applications", () => {
       "WITHDRAWN",
     ]);
   });
+
+  it("expose le statut non retenue de sa candidature", async () => {
+    const response = await request(app)
+      .get("/applications")
+      .set("Authorization", tokenFor("STUDENT", STUDENT.LEA_MERTENS));
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([
+      expect.objectContaining({
+        id: APPLICATION.LEA_CLOUD_MIGRATION,
+        offerId: OFFER.CLOUD_MIGRATION,
+        studentId: STUDENT.LEA_MERTENS,
+        status: "REJECTED",
+      }),
+    ]);
+  });
 });
