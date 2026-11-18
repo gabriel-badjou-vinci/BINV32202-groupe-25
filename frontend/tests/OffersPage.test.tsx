@@ -83,6 +83,22 @@ describe("OffersPage", () => {
     expect(await screen.findByRole("status")).toHaveTextContent("Votre candidature a été envoyée.");
   });
 
+  it("affiche une erreur lorsque la candidature est refusée par le backend", async () => {
+    stubFetch({
+      "/api/offers": () => Response.json([{ ...offers[0], status: "PUBLISHED" }]),
+      "/api/offers/2/applications": () => new Response(null, { status: 409 }),
+    });
+
+    render(<OffersPage user={studentUser} token="jeton" onUnauthorized={vi.fn()} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Candidater" }));
+    fireEvent.click(screen.getByRole("button", { name: "Envoyer ma candidature" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Candidature impossible (statut 409)",
+    );
+  });
+
   it("affiche un refus d'accès renvoyé par le backend", async () => {
     stubFetch({ "/api/offers": () => new Response(null, { status: 403 }) });
 
